@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mega-Sena Predictions</title>
+    <link rel="stylesheet" href="/static/styles.css">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+</head>
+<body>
+    <h1>Previsões da Mega-Sena</h1>
+    <button id="getPredictions">Obter Previsões</button>
+    <button id="getVisualization">Ver Visualização</button>
+    <div id="predictions"></div>
+    <div id="visualization" style="display: none;">
+        <h2>Distribuição de Frequência dos Números Sorteados</h2>
+        <img id="distributionImage" src="" alt="Distribuição de Frequência" style="max-width: 100%;">
+    </div>
+    <script>
+        $(document).ready(function() {
+            $('#getPredictions').click(function() {
+                $('#predictions').html('<p>Carregando...</p>');
+                $.ajax({
+                    url: '/predict',
+                    method: 'GET',
+                    success: function(data) {
+                        $('#predictions').html(`
+                            <h2>Previsões:</h2>
+                            <p>Poisson: ${data.poisson_prediction.join(', ')}</p>
+                            <p>Binomial: ${data.binomial_prediction.join(', ')}</p>
+                            <p>Bayesiana: ${data.bayesian_prediction.join(', ')}</p>
+                            <h3>Monte Carlo (10 primeiros resultados):</h3>
+                            <ul>
+                                ${data.monte_carlo.map(result => `<li>${result.join(', ')}</li>`).join('')}
+                            </ul>
+                            <h3>Regressão Linear Múltipla:</h3>
+                            <p>${data.linear_regression_prediction.join(', ')}</p>
+                        `);
+                    },
+                    error: function(xhr, status, error) {
+                        $('#predictions').html(`<p>Erro: ${error}</p>`);
+                    }
+                });
+            });
+
+            $('#getVisualization').click(function() {
+                $('#visualization').show();
+                $('#distributionImage').attr('src', 'static/distribution.png');
+                $.ajax({
+                    url: '/visualize',
+                    method: 'GET',
+                    success: function(data) {
+                        $('#visualization').append('<p>Visualização carregada com sucesso.</p>');
+                    },
+                    error: function(xhr, status, error) {
+                        $('#visualization').append(`<p>Erro ao carregar visualização: ${error}</p>`);
+                    }
+                });
+            });
+        });
+    </script>
+</body>
+</html>
